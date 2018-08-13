@@ -29,14 +29,14 @@ func buildInfo(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	buildArg := c.Args().Get(1)
-
 	client, err := internal.NewClient(c)
 	if err != nil {
 		return err
 	}
 
 	var number int
+
+	buildArg := c.Args().Get(1)
 	if buildArg == "last" || len(buildArg) == 0 {
 		// Fetch the build number from the last build
 		build, err := client.BuildLast(owner, name, "")
@@ -47,7 +47,7 @@ func buildInfo(c *cli.Context) error {
 	} else {
 		number, err = strconv.Atoi(buildArg)
 		if err != nil {
-			return err
+			return errInvalidBuildNumber
 		}
 	}
 

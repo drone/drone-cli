@@ -23,7 +23,7 @@ func buildDecline(c *cli.Context) (err error) {
 	}
 	number, err := strconv.Atoi(c.Args().Get(1))
 	if err != nil {
-		return err
+		return errInvalidBuildNumber
 	}
 
 	client, err := internal.NewClient(c)

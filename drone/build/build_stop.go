@@ -1,12 +1,15 @@
 package build
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/drone/drone-cli/drone/internal"
 	"github.com/urfave/cli"
 )
+
+var errInvalidJobNumber = errors.New("Error: missing or invalid job number.")
 
 var buildStopCmd = cli.Command{
 	Name:      "stop",
@@ -21,13 +24,18 @@ func buildStop(c *cli.Context) (err error) {
 	if err != nil {
 		return err
 	}
+
 	number, err := strconv.Atoi(c.Args().Get(1))
 	if err != nil {
-		return err
+		return errInvalidBuildNumber
 	}
-	job, _ := strconv.Atoi(c.Args().Get(2))
-	if job == 0 {
+
+	var job int
+	jobArg := c.Args().Get(2)
+	if jobArg == "" {
 		job = 1
+	} else if job, err = strconv.Atoi(jobArg); err != nil {
+		return errInvalidJobNumber
 	}
 
 	client, err := internal.NewClient(c)

@@ -1,6 +1,12 @@
 package build
 
-import "github.com/urfave/cli"
+import (
+	"errors"
+
+	"github.com/urfave/cli"
+)
+
+var errInvalidBuildNumber = errors.New("Error: missing or invalid build number.")
 
 // Command exports the build command set.
 var Command = cli.Command{

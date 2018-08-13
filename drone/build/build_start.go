@@ -43,14 +43,12 @@ func buildStart(c *cli.Context) (err error) {
 			return err
 		}
 		number = build.Number
+	} else if len(buildArg) == 0 {
+		return errors.New("missing job number")	
+	} else if parsedNumber, err := strconv.Atoi(buildArg); err != nil {
+		return errInvalidBuildNumber
 	} else {
-		if len(buildArg) == 0 {
-			return errors.New("missing job number")
-		}
-		number, err = strconv.Atoi(buildArg)
-		if err != nil {
-			return err
-		}
+		number = parsedNumber
 	}
 
 	params := internal.ParseKeyPair(c.StringSlice("param"))
