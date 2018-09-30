@@ -2,8 +2,10 @@ package exec
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -275,10 +277,14 @@ var Command = cli.Command{
 			EnvVar: "DRONE_JOB_NUMBER",
 		},
 		cli.StringSliceFlag{
-			Name: "env, e",
+			Name:   "env, e",
 			EnvVar: "DRONE_ENV",
 		},
 	},
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
 
 func exec(c *cli.Context) error {
@@ -364,7 +370,12 @@ func exec(c *cli.Context) error {
 			c.StringSlice("network")...,
 		),
 		compiler.WithPrefix(
-			c.String("prefix"),
+			fmt.Sprintf(
+				"%s_%d_%d",
+				c.String("prefix"),
+				os.Getpid(),
+				rand.Int(),
+			),
 		),
 		compiler.WithProxy(),
 		compiler.WithLocal(
