@@ -63,6 +63,10 @@ var Command = cli.Command{
 			Usage: "enable the clone step",
 		},
 		cli.BoolFlag{
+			Name:  "copy",
+			Usage: "copy the current directory to temporarily directory and mount it instead of mounting the current directory",
+		},
+		cli.BoolFlag{
 			Name:  "trusted",
 			Usage: "build is trusted",
 		},
@@ -149,6 +153,10 @@ func exec(c *cli.Context) error {
 	file := c.Args().First()
 	if file == "" {
 		file = ".drone.yml"
+	}
+
+	if c.Bool("clone") && c.Bool("copy") {
+		return errors.New("both 'copy' and 'clone' flags can't be set")
 	}
 
 	data, err := ioutil.ReadFile(file)
@@ -264,9 +272,22 @@ func exec(c *cli.Context) error {
 		),
 	}
 	if c.Bool("clone") == false {
-		pwd, _ := os.Getwd()
+		target := ""
+		if c.Bool("copy") {
+			dir, err := ioutil.TempDir("", "drone-cli-copy")
+			if err != nil {
+				return err
+			}
+			defer os.RemoveAll(dir)
+			if err := copyDir(".", dir); err != nil {
+				return err
+			}
+			target = dir
+		} else {
+			target, _ = os.Getwd()
+		}
 		comp.WorkspaceMountFunc = compiler.MountHostWorkspace
-		comp.WorkspaceFunc = compiler.CreateHostWorkspace(pwd)
+		comp.WorkspaceFunc = compiler.CreateHostWorkspace(target)
 	}
 	comp.TransformFunc = transform.Combine(transforms...)
 	ir := comp.Compile(pipeline)
