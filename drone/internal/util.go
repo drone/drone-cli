@@ -2,11 +2,11 @@ package internal
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/jackspirou/syscerts"
 	"github.com/urfave/cli"
 	"golang.org/x/net/proxy"
 	"golang.org/x/oauth2"
@@ -35,7 +35,10 @@ func NewClient(c *cli.Context) (drone.Client, error) {
 	}
 
 	// attempt to find system CA certs
-	certs := syscerts.SystemRootsPool()
+	certs, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, err
+	}
 	tlsConfig := &tls.Config{
 		RootCAs:            certs,
 		InsecureSkipVerify: skip,

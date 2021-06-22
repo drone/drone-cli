@@ -14,7 +14,6 @@ require (
 	github.com/drone/signal v1.0.0
 	github.com/fatih/color v1.9.0
 	github.com/google/go-jsonnet v0.16.0
-	github.com/jackspirou/syscerts v0.0.0-20160531025014-b68f5469dff1
 	github.com/joho/godotenv v1.3.0
 	github.com/mattn/go-colorable v0.1.4
 	github.com/mattn/go-isatty v0.0.11
