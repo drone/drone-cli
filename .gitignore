@@ -1,3 +1,4 @@
 drone/drone
 release
 .env
+*.snap

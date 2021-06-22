@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# This is the maintainence launcher for the snap, make necessary runtime
+# environment changes to make the snap work here.  You may also insert
+# security confinement/deprecation/obsoletion notice of the snap here.
+
+set \
+    -o errexit \
+    -o errtrace \
+    -o nounset \
+    -o pipefail
+
+if ! snapctl is-connected docker; then
+    printf "Warning: You haven't connected the snap to the \`docker\` interface, the application may not be able to interact with the local Docker service.  Refer <https://forum.snapcraft.io/t/error-snap-core-has-no-docker-interface-slots/16322/2> for instructions.\\n\\n" 1>&2
+fi
+
+# Finally run the next part of the command chain
+exec "${@}"

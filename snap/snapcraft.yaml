@@ -1,0 +1,109 @@
+%YAML 1.1
+---
+# Snapcraft Recipe for Drone CLI
+# ------------------------------
+# This file is in the YAML data serialization format:
+# http://yaml.org
+# For the spec. of writing this file refer the following documentation:
+# * The snapcraft format
+#   https://docs.snapcraft.io/the-snapcraft-format/8337
+# * Snap Documentation
+#   https://docs.snapcraft.io
+# * Topics under the doc category in the Snapcraft Forum
+#   https://forum.snapcraft.io/c/doc
+# For support refer to the snapcraft section in the Snapcraft Forum:
+# https://forum.snapcraft.io/c/snapcraft
+
+name: drone
+license: Apache-2.0
+title: Drone CLI
+summary: Command Line Tools for Drone CI
+description: |
+  Command line client for the Drone continuous integration server.
+
+adopt-info: main
+architectures:
+  #- build-on: i386
+  - build-on: amd64
+  - build-on: armhf
+  - build-on: arm64
+  #- build-on: ppc64el
+  #- build-on: s390x
+
+assumes:
+  - command-chain
+
+  # `snapctl is-connected _interface_name_` support
+  # https://forum.snapcraft.io/t/snapctl-is-connected-plug-slot/14144
+  - snapd2.43
+
+base: core18
+confinement: strict
+grade: stable
+
+parts:
+  main:
+    after:
+      - selective-checkout
+
+    source: .
+    override-pull: |
+      snapcraftctl pull
+
+      "$SNAPCRAFT_STAGE"/scriptlets/selective-checkout
+
+    build-packages:
+      - gcc
+    plugin: go
+    override-build: |
+      # NOTE:
+      # As currently the Go plugin doesn't support custom -ldflags, we
+      # implement it manually while closely following Snapcraft's behavior:
+      # https://github.com/snapcore/snapcraft/blob/38996d5/snapcraft/plugins/v1/go.py#L243
+      git_version="$(git describe --tags --always --dirty)"
+      app_version="${git_version#v}"
+
+      go build \
+        -ldflags "-linkmode=external -X main.version=${app_version}" \
+        -o "${SNAPCRAFT_PART_INSTALL}"/bin/drone \
+        ./drone
+
+  # Launcher programs to fix problems at runtime
+  launchers:
+    source: snap/local/launchers
+    plugin: dump
+    organize:
+      '*': bin/
+    stage:
+      - -bin/README.*
+
+  # Check out the tagged release revision if it isn't promoted to the stable channel
+  # https://forum.snapcraft.io/t/selective-checkout-check-out-the-tagged-release-revision-if-it-isnt-promoted-to-the-stable-channel/10617
+  selective-checkout:
+    plugin: nil
+    build-packages:
+      - git
+    stage-snaps:
+      - selective-checkout
+    prime:
+      - -*
+
+apps:
+  drone:
+    adapter: full
+    command: bin/drone
+    command-chain:
+      - bin/drone-launch
+    environment:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+
+plugs:
+  docker:
+
+  # Regular files access
+  home:
+  removable-media:
+
+  # Network access
+  network:
